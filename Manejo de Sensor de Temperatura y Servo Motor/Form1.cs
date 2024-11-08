@@ -15,7 +15,7 @@ namespace Manejo_de_Sensor_de_Temperatura_y_Servo_Motor
 {
     public partial class Form1 : Form
     {
-        delegate void SetTextDelegate(string value);
+        delegate void SetTextDelegate(string celsius, string fahrenheit);
         public SerialPort ArduinoPort
         {
             get;
@@ -30,28 +30,51 @@ namespace Manejo_de_Sensor_de_Temperatura_y_Servo_Motor
             ArduinoPort.ReadTimeout = 1000;
             ArduinoPort.WriteTimeout = 1000;
             ArduinoPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
+
+           
             // ArduinoPort.Open();
         }
 
         private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             string dato = ArduinoPort.ReadLine();
-            EscribirText(dato);
+            ProcesarTemperatura(dato);
         }
 
-        private void EscribirText(string dato)
+        private void ProcesarTemperatura(string dato)
+        {
+           
+            if (double.TryParse(dato, out double tempC))
+            {
+               
+                double tempF = (tempC * 1.8) + 32;
+                EscribirText(tempC.ToString("0.0"), tempF.ToString("0.0"));
+            }
+            else
+            {
+              
+                EscribirText("Error", "Error");
+            }
+        }
+
+        private void EscribirText(string celsius, string fahrenheit)
         {
             if (InvokeRequired)
                 try
                 {
-                    Invoke(new SetTextDelegate(EscribirText), dato);
+                    
+                    Invoke(new SetTextDelegate(EscribirText), celsius, fahrenheit);
                 }
                 catch
                 {
-                    //Poner acción de aviso de error
+                  
                 }
             else
-                label4.Text = dato;
+            {
+              
+                label4.Text = celsius + " °C";
+                label5.Text = fahrenheit + " °F";
+            }
         }
 
 
@@ -62,16 +85,13 @@ namespace Manejo_de_Sensor_de_Temperatura_y_Servo_Motor
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //button2.Enabled=true;
-            //button2.Enabled=false;
             try
             {
-
                 if (!ArduinoPort.IsOpen)
                     ArduinoPort.Open();
+
                 if (int.TryParse(textBox1.Text, out int temperatureLimit))
                 {
-
                     string limitString = temperatureLimit.ToString();
                     ArduinoPort.Write(limitString);
                 }
@@ -97,9 +117,45 @@ namespace Manejo_de_Sensor_de_Temperatura_y_Servo_Motor
                 ArduinoPort.Close();
             label2.Text = "Desconectado";
             label2.ForeColor = System.Drawing.Color.Red;
-            label4.Text = "00,0";
+            label4.Text = "00.0 °C";
+            label5.Text = "00.0 °F";
+        }
+     
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
 
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            ArduinoPort.Write("a");
+        }
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            ArduinoPort.Write("b");
+        }
     }
 }
 
